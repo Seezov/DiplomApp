@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">WorkloadTracker</string>
+    <string name="plan">Plan</string>
+    <string name="workload">Workload</string>
 </resources>

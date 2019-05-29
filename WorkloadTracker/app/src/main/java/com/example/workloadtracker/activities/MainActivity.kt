@@ -1,31 +1,50 @@
 package com.example.workloadtracker.activities
 
 import android.os.Bundle
+import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.fragment.app.Fragment
 import com.example.workloadtracker.R
-import com.example.workloadtracker.adapters.PlanAdapter
-import com.example.workloadtracker.enteties.Plan
-import kotlinx.android.synthetic.main.activity_main.*
+import com.example.workloadtracker.fragments.PlanFragment
+import com.example.workloadtracker.fragments.WorkloadFragment
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
+
+    lateinit var toolbar: ActionBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        toolbar = supportActionBar!!
+        val bottomNavigation: BottomNavigationView = findViewById(R.id.navigation)
 
+        bottomNavigation.setOnNavigationItemSelectedListener{
+            when (it.itemId) {
+                R.id.navigation_plan -> {
+                    toolbar.title = getString(R.string.plan)
+                    val planFragment = PlanFragment.newInstance()
+                    openFragment(planFragment)
+                    return@setOnNavigationItemSelectedListener true
+                }
+                R.id.navigation_workload -> {
+                    toolbar.title = getString(R.string.workload)
+                    val workloadFragment = WorkloadFragment.newInstance()
+                    openFragment(workloadFragment)
+                    return@setOnNavigationItemSelectedListener true
+                }
+            }
+            false
+        }
 
-        val plans = mutableListOf(
-            Plan(1, 1, 1, 1, 1, 10),
-            Plan(2, 1, 2, 1, 1, 15),
-            Plan(3, 1, 3, 1, 1, 5)
-        )
+        bottomNavigation.selectedItemId = R.id.navigation_plan
+    }
 
-        var adapter = PlanAdapter(plans)
-
-        rvPlan.adapter = adapter
-        rvPlan.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
+    private fun openFragment(fragment: Fragment) {
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.fragmentContainer, fragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
     }
 }
