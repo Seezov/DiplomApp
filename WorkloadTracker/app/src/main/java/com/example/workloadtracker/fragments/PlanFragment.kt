@@ -47,7 +47,6 @@ class PlanFragment : Fragment() {
         rvPlan.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
 
         // Set spinners type
-
         inflateSpinner(spinnerDisc, dataProvider.getDisciplines().map { it.name }.toMutableList())
         inflateSpinner(spinnerLT, dataProvider.getLessonTypes().map { it.name }.toMutableList())
 

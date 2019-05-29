@@ -67,11 +67,17 @@ class DataProvider {
         )
     )
 
+    fun getGroupCodeById(id: Int): GroupCode? = groupCodes.find { it.id == id }
+
+    fun getLecturerById(id: Int): Lecturer? = lecturers.find { it.id == id }
+
     fun getDisciplineById(id: Int): Discipline? = disciplines.find { it.id == id }
 
     fun getLessonTypeById(id: Int): LessonType? = lessonTypes.find { it.id == id }
 
     fun getEducationFormById(id: Int): EducationForm? = educationForms.find { it.id == id }
+
+    fun getWorkloadById(id: Int): Workload? = workloads.find { it.id == id }
 
     fun getRateById(id: Int): Rate? = rates.find { it.id == id }
 
@@ -90,4 +96,6 @@ class DataProvider {
     fun getDisciplines(): MutableList<Discipline> = disciplines.toMutableList()
 
     fun getLessonTypes(): MutableList<LessonType> = lessonTypes.toMutableList()
+
+    fun getWorkloads(): MutableList<Workload> = workloads.toMutableList()
 }
