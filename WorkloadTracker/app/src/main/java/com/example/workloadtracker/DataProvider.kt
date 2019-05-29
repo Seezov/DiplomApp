@@ -6,9 +6,9 @@ import java.util.*
 class DataProvider {
 
     private val groupCodes = listOf(
-        GroupCode(1,"KS-15"),
-        GroupCode(2,"KM-15"),
-        GroupCode(3,"KI-15")
+        GroupCode(1, "KS-15"),
+        GroupCode(2, "KM-15"),
+        GroupCode(3, "KI-15")
     )
 
     private val disciplines = listOf(
@@ -50,7 +50,8 @@ class DataProvider {
             2,
             1,
             1,
-            203),
+            203
+        ),
         Workload(
             2,
             1,
@@ -62,7 +63,8 @@ class DataProvider {
             2,
             2,
             1,
-            203)
+            203
+        )
     )
 
     fun getDisciplineById(id: Int): Discipline? = disciplines.find { it.id == id }
@@ -79,10 +81,13 @@ class DataProvider {
         idEF: Int
     ): Int = workloads.filter {
         it.idDisc == idDisc &&
-        it.idLT == idLT &&
-        it.idEF == idEF
+                it.idLT == idLT &&
+                it.idEF == idEF
     }
-    .map { it.hours }
-    .sum()
+        .map { it.hours }
+        .sum()
 
+    fun getDisciplines(): MutableList<Discipline> = disciplines.toMutableList()
+
+    fun getLessonTypes(): MutableList<LessonType> = lessonTypes.toMutableList()
 }

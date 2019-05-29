@@ -2,4 +2,7 @@
     <string name="app_name">WorkloadTracker</string>
     <string name="plan">Plan</string>
     <string name="workload">Workload</string>
+    <string name="discipline">Discipline</string>
+    <string name="lesson_type">Lesson Type</string>
+    <string name="group_code">Group Code</string>
 </resources>
