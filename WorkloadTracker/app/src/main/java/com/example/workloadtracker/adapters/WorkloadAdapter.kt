@@ -11,28 +11,26 @@ import com.example.workloadtracker.R
 import com.example.workloadtracker.enteties.Workload
 import java.text.SimpleDateFormat
 
-class WorkloadAdapter(private val plans: MutableList<Workload>) : RecyclerView.Adapter<WorkloadAdapter.ViewHolder>() {
-
-    private val dataProvider: DataProvider = DataProvider()
+class WorkloadAdapter(private val dataProvider: DataProvider, private val workloads: MutableList<Workload>) : RecyclerView.Adapter<WorkloadAdapter.ViewHolder>() {
 
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.txtDiscipline.text = dataProvider.getDisciplineById(plans[position].idDisc)?.name
-        holder.txtLessonType.text = dataProvider.getLessonTypeById(plans[position].idLT)?.name
+        holder.txtDiscipline.text = dataProvider.getDisciplineById(workloads[position].idDisc)?.name
+        holder.txtLessonType.text = dataProvider.getLessonTypeById(workloads[position].idLT)?.name
 
-        holder.txtWorkloadInfo.text = "${SimpleDateFormat("dd-MM-yyyy").format(plans[position].date)}\n" +
-            "${plans[position].week} week/" +
-                "${plans[position].index} pair/" +
-                "${plans[position].hall} hall/" +
-                "${dataProvider.getEducationFormById(plans[position].idEF)?.name} form"
+        holder.txtWorkloadInfo.text = "${SimpleDateFormat("dd/MM/yyyy").format(workloads[position].date)}\n" +
+            "${workloads[position].week} week/" +
+                "${workloads[position].index} pair/" +
+                "${workloads[position].hall} hall/" +
+                "${dataProvider.getEducationFormById(workloads[position].idEF)?.name} form"
 
         holder.txtGroupCode.text = dataProvider.getGroupCodeById(
-            dataProvider.getWorkloadById(plans[position].id)?.idGC!!
+            dataProvider.getWorkloadById(workloads[position].id)?.idGC!!
         )?.name
         holder.txtLecturer.text = dataProvider.getLecturerById(
-            dataProvider.getWorkloadById(plans[position].id)?.idLecturer!!
+            dataProvider.getWorkloadById(workloads[position].id)?.idLecturer!!
         )?.name
-        holder.txtWorkloadHours.text = "${dataProvider.getWorkloadById(plans[position].id)?.hours.toString()} hours"
+        holder.txtWorkloadHours.text = "${dataProvider.getWorkloadById(workloads[position].id)?.hours.toString()} hours"
     }
 
 
@@ -42,7 +40,7 @@ class WorkloadAdapter(private val plans: MutableList<Workload>) : RecyclerView.A
     }
 
     override fun getItemCount(): Int {
-        return plans.size
+        return workloads.size
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

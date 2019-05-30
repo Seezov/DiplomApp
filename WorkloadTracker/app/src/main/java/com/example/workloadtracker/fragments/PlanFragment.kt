@@ -16,8 +16,6 @@ import com.example.workloadtracker.adapters.PlanAdapter
 import com.example.workloadtracker.enteties.Plan
 import kotlinx.android.synthetic.main.fragment_plan.*
 
-
-
 class PlanFragment : Fragment() {
 
     private val dataProvider: DataProvider = DataProvider()

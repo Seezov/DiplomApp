@@ -60,6 +60,7 @@
                     android:textAppearance="@style/Base.TextAppearance.AppCompat.Body1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    tools:text="2 hours"
                     app:layout_constraintTop_toBottomOf="@+id/txtLecturer"
                     app:layout_constraintRight_toRightOf="parent"/>
         </android.support.constraint.ConstraintLayout>

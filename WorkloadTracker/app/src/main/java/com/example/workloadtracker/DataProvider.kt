@@ -38,7 +38,7 @@ class DataProvider {
         Lecturer(2, "Yarynich Y.O.", "Docent")
     )
 
-    private val workloads = listOf(
+    private var workloads = mutableListOf(
         Workload(
             1,
             1,
@@ -97,5 +97,39 @@ class DataProvider {
 
     fun getLessonTypes(): MutableList<LessonType> = lessonTypes.toMutableList()
 
+    fun getGroupCodes(): MutableList<GroupCode> = groupCodes.toMutableList()
+
+    fun getLecturers(): MutableList<Lecturer> = lecturers.toMutableList()
+
+    fun getEducationForms(): MutableList<EducationForm> = educationForms.toMutableList()
+
     fun getWorkloads(): MutableList<Workload> = workloads.toMutableList()
+
+    fun addWorkload(
+        nameGC: String,
+        nameLecturer: String,
+        nameLessonType: String,
+        nameDiscipline: String,
+        nameEducationForm: String,
+        date: Date,
+        hours: Int,
+        week: Int,
+        index: Int,
+        hall: Int) {
+        workloads.add(
+            Workload(
+            workloads.size+1,
+            groupCodes.find { it.name == nameGC }?.id!!,
+            lecturers.find { it.name == nameLecturer }?.id!!,
+            lessonTypes.find { it.name == nameLessonType }?.id!!,
+            disciplines.find { it.name == nameDiscipline }?.id!!,
+            educationForms.find { it.name == nameEducationForm}?.id!!,
+            date,
+            hours,
+            week,
+            index,
+            hall)
+        )
+        print("LOL")
+    }
 }
