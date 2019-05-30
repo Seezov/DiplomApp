@@ -10,20 +10,20 @@ import android.widget.Spinner
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.workloadtracker.DataProvider
 import com.example.workloadtracker.R
 import com.example.workloadtracker.adapters.PlanAdapter
+import com.example.workloadtracker.database.AppDatabase
+import com.example.workloadtracker.database.DBUtils
 import com.example.workloadtracker.enteties.Plan
 import kotlinx.android.synthetic.main.fragment_plan.*
 
-class PlanFragment : Fragment() {
-
-    private val dataProvider: DataProvider = DataProvider()
+class PlanFragment(private var db: AppDatabase) : Fragment() {
 
     private val plans = mutableListOf(
         Plan(1, 1, 1, 1, 1, 10),
         Plan(2, 1, 2, 1, 1, 15),
-        Plan(3, 1, 3, 1, 1, 5)
+        Plan(3, 1, 3, 1, 1, 5),
+        Plan(4, 2, 1, 1, 1, 5)
     )
 
     private var newPlans: MutableList<Plan> = emptyList<Plan>().toMutableList()
@@ -34,19 +34,19 @@ class PlanFragment : Fragment() {
         inflater.inflate(R.layout.fragment_plan, container, false)
 
     companion object {
-        fun newInstance(): PlanFragment = PlanFragment()
+        fun newInstance(db: AppDatabase): PlanFragment = PlanFragment(db)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         newPlans.addAll(plans)
-        adapter = PlanAdapter(newPlans)
+        adapter = PlanAdapter(db, newPlans)
         rvPlan.adapter = adapter
         rvPlan.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
 
         // Set spinners type
-        inflateSpinner(spinnerDisc, dataProvider.getDisciplines().map { it.name }.toMutableList())
-        inflateSpinner(spinnerLT, dataProvider.getLessonTypes().map { it.name }.toMutableList())
+        inflateSpinner(spinnerDisc, db.disciplineDao().getAll().map { it.name }.toMutableList())
+        inflateSpinner(spinnerLT, db.lessonTypeDao().getAll().map { it.name }.toMutableList())
 
         val callback = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
@@ -65,9 +65,9 @@ class PlanFragment : Fragment() {
     private fun filterItems() {
         newPlans.clear()
         newPlans.addAll(plans.filter {
-            (dataProvider.getDisciplineById(it.idDisc)?.name == spinnerDisc.selectedItem.toString() ||
+            (db.disciplineDao().getById(it.idDisc).name == spinnerDisc.selectedItem.toString() ||
             spinnerDisc.selectedItem.toString() == "Any") &&
-            (dataProvider.getLessonTypeById(it.idLT)?.name == spinnerLT.selectedItem.toString() ||
+            (db.lessonTypeDao().getById(it.idLT).name == spinnerLT.selectedItem.toString() ||
             spinnerLT.selectedItem.toString() == "Any")
         })
         adapter.notifyDataSetChanged()

@@ -11,23 +11,17 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.workloadtracker.DataProvider
 import com.example.workloadtracker.R
-import com.example.workloadtracker.adapters.PlanAdapter
 import com.example.workloadtracker.adapters.WorkloadAdapter
-import kotlinx.android.synthetic.main.dialog_add_workload.*
+import com.example.workloadtracker.database.AppDatabase
+import com.example.workloadtracker.enteties.Workload
 import kotlinx.android.synthetic.main.dialog_add_workload.view.*
 import kotlinx.android.synthetic.main.fragment_workload.*
-import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
 
-
-
-class WorkloadFragment : Fragment() {
-
-    private val dataProvider: DataProvider = DataProvider()
+class WorkloadFragment(private var db: AppDatabase) : Fragment() {
 
     private lateinit var adapter: WorkloadAdapter
 
@@ -35,13 +29,13 @@ class WorkloadFragment : Fragment() {
         inflater.inflate(R.layout.fragment_workload, container, false)
 
     companion object {
-        fun newInstance(): WorkloadFragment = WorkloadFragment()
+        fun newInstance(db: AppDatabase): WorkloadFragment = WorkloadFragment(db)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val workloads = dataProvider.getWorkloads()
-        adapter = WorkloadAdapter(dataProvider, workloads)
+        val workloads = db.workloadDao().getAll().toMutableList()
+        adapter = WorkloadAdapter(db, workloads)
         rvWorkload.adapter = adapter
         rvWorkload.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
 
@@ -53,20 +47,27 @@ class WorkloadFragment : Fragment() {
                 .setView(mDialogView)
             //show dialog
             val mAlertDialog = mBuilder.show()
-            inflateSpinner(mDialogView.spinnerDisc, dataProvider.getDisciplines().map { it.name }.toMutableList())
-            inflateSpinner(mDialogView.spinnerLT, dataProvider.getLessonTypes().map { it.name }.toMutableList())
-            inflateSpinner(mDialogView.spinnerGC, dataProvider.getGroupCodes().map { it.name }.toMutableList())
-            inflateSpinner(mDialogView.spinnerLecturer, dataProvider.getLecturers().map { it.name }.toMutableList())
-            inflateSpinner(mDialogView.spinnerEF, dataProvider.getEducationForms().map { it.name }.toMutableList())
+            inflateSpinner(mDialogView.spinnerDisc, db.disciplineDao().getAll().map { it.name }.toMutableList())
+            inflateSpinner(mDialogView.spinnerLT, db.lessonTypeDao().getAll().map { it.name }.toMutableList())
+            inflateSpinner(mDialogView.spinnerGC, db.groupCodeDao().getAll().map { it.name }.toMutableList())
+            inflateSpinner(mDialogView.spinnerLecturer, db.lecturerDao().getAll().map { it.name }.toMutableList())
+            inflateSpinner(mDialogView.spinnerEF, db.educationFormDao().getAll().map { it.name }.toMutableList())
 
             val newCalendar = Calendar.getInstance()
             mDialogView.txtDate.text = SimpleDateFormat("dd/MM/yyyy").format(newCalendar.time)
 
-            val startTime = DatePickerDialog(context!!, R.style.Base_Theme_AppCompat_Light_Dialog, { _, year, monthOfYear, dayOfMonth ->
-                val newDate = Calendar.getInstance()
-                newDate.set(year, monthOfYear, dayOfMonth)
-                mDialogView.txtDate.text = SimpleDateFormat("dd/MM/yyyy").format(newDate.time)
-            }, newCalendar.get(Calendar.YEAR), newCalendar.get(Calendar.MONTH), newCalendar.get(Calendar.DAY_OF_MONTH))
+            val startTime = DatePickerDialog(
+                context!!,
+                R.style.Base_Theme_AppCompat_Light_Dialog,
+                { _, year, monthOfYear, dayOfMonth ->
+                    val newDate = Calendar.getInstance()
+                    newDate.set(year, monthOfYear, dayOfMonth)
+                    mDialogView.txtDate.text = SimpleDateFormat("dd/MM/yyyy").format(newDate.time)
+                },
+                newCalendar.get(Calendar.YEAR),
+                newCalendar.get(Calendar.MONTH),
+                newCalendar.get(Calendar.DAY_OF_MONTH)
+            )
 
             mDialogView.btnDate.setOnClickListener { startTime.show() }
 
@@ -81,20 +82,24 @@ class WorkloadFragment : Fragment() {
                     mDialogView.fHall.text.toString().isNotEmpty()
                 ) {
                     mAlertDialog.dismiss()
-                    dataProvider.addWorkload(
-                        mDialogView.spinnerGC.selectedItem.toString(),
-                        mDialogView.spinnerLecturer.selectedItem.toString(),
-                        mDialogView.spinnerLT.selectedItem.toString(),
-                        mDialogView.spinnerDisc.selectedItem.toString(),
-                        mDialogView.spinnerEF.selectedItem.toString(),
-                        SimpleDateFormat("dd/MM/yyyy").parse(mDialogView.txtDate.text.toString()),
-                        mDialogView.fHours.text.toString().toInt(),
-                        mDialogView.fWeek.text.toString().toInt(),
-                        mDialogView.fIndex.text.toString().toInt(),
-                        mDialogView.fHall.text.toString().toInt()
+
+                    db.workloadDao().add(
+                        Workload(
+                            db.workloadDao().getAll().size+1,
+                            db.groupCodeDao().getByName(mDialogView.spinnerGC.selectedItem.toString()).id,
+                            db.lecturerDao().getByName(mDialogView.spinnerLecturer.selectedItem.toString()).id,
+                            db.lessonTypeDao().getByName(mDialogView.spinnerLT.selectedItem.toString()).id,
+                            db.disciplineDao().getByName(mDialogView.spinnerDisc.selectedItem.toString()).id,
+                            db.educationFormDao().getByName(mDialogView.spinnerEF.selectedItem.toString()).id,
+                            SimpleDateFormat("dd/MM/yyyy").parse(mDialogView.txtDate.text.toString()),
+                            mDialogView.fHours.text.toString().toInt(),
+                            mDialogView.fWeek.text.toString().toInt(),
+                            mDialogView.fIndex.text.toString().toInt(),
+                            mDialogView.fHall.text.toString().toInt()
+                        )
                     )
                     workloads.clear()
-                    workloads.addAll(dataProvider.getWorkloads())
+                    workloads.addAll(db.workloadDao().getAll())
                     adapter.notifyDataSetChanged()
                 }
             }

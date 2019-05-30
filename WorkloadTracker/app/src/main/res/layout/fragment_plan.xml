@@ -5,11 +5,22 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+    <TextView
+            android:layout_marginTop="18dp"
+            android:id="@+id/txtPlanTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="You can filter these items by:"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+    />
     <LinearLayout
             android:id="@+id/containerSortingSpinners"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/txtPlanTitle"
             app:layout_constraintLeft_toLeftOf="parent"
             android:orientation="vertical">
 

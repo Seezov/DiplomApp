@@ -6,31 +6,32 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.workloadtracker.DataProvider
 import com.example.workloadtracker.R
+import com.example.workloadtracker.database.AppDatabase
 import com.example.workloadtracker.enteties.Workload
 import java.text.SimpleDateFormat
 
-class WorkloadAdapter(private val dataProvider: DataProvider, private val workloads: MutableList<Workload>) : RecyclerView.Adapter<WorkloadAdapter.ViewHolder>() {
+class WorkloadAdapter(private val db: AppDatabase, private val workloads: MutableList<Workload>) :
+    RecyclerView.Adapter<WorkloadAdapter.ViewHolder>() {
 
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.txtDiscipline.text = dataProvider.getDisciplineById(workloads[position].idDisc)?.name
-        holder.txtLessonType.text = dataProvider.getLessonTypeById(workloads[position].idLT)?.name
+        holder.txtDiscipline.text = db.disciplineDao().getById(workloads[position].idDisc).name
+        holder.txtLessonType.text = db.lessonTypeDao().getById(workloads[position].idLT).name
 
         holder.txtWorkloadInfo.text = "${SimpleDateFormat("dd/MM/yyyy").format(workloads[position].date)}\n" +
-            "${workloads[position].week} week/" +
+                "${workloads[position].week} week/" +
                 "${workloads[position].index} pair/" +
                 "${workloads[position].hall} hall/" +
-                "${dataProvider.getEducationFormById(workloads[position].idEF)?.name} form"
+                "${db.educationFormDao().getById(workloads[position].idEF).name} form"
 
-        holder.txtGroupCode.text = dataProvider.getGroupCodeById(
-            dataProvider.getWorkloadById(workloads[position].id)?.idGC!!
-        )?.name
-        holder.txtLecturer.text = dataProvider.getLecturerById(
-            dataProvider.getWorkloadById(workloads[position].id)?.idLecturer!!
-        )?.name
-        holder.txtWorkloadHours.text = "${dataProvider.getWorkloadById(workloads[position].id)?.hours.toString()} hours"
+        holder.txtGroupCode.text = db.groupCodeDao().getById(
+            db.workloadDao().getById(workloads[position].id).idGC
+        ).name
+        holder.txtLecturer.text = db.lecturerDao().getById(
+            db.workloadDao().getById(workloads[position].id).idLecturer
+        ).name
+        holder.txtWorkloadHours.text = "${db.workloadDao().getById(workloads[position].id).hours} hours"
     }
 
 
