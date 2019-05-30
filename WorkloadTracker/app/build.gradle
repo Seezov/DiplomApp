@@ -45,6 +45,8 @@ dependencies {
     kapt "androidx.room:room-compiler:2.0.0"
     //androidTestImplementation "androidx.room:room-testing:2.0.0"
 
+    implementation 'com.squareup.retrofit2:retrofit:2.5.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

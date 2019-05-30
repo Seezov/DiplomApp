@@ -1,15 +1,23 @@
 package com.example.workloadtracker.activities
 
 import android.os.Bundle
+import androidx.annotation.NonNull
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.workloadtracker.R
+import com.example.workloadtracker.api.ApiClient
+import com.example.workloadtracker.api.responses.DisciplinesResponse
 import com.example.workloadtracker.database.DBUtils
 import com.example.workloadtracker.enteties.*
 import com.example.workloadtracker.fragments.PlanFragment
 import com.example.workloadtracker.fragments.WorkloadFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
@@ -23,6 +31,12 @@ class MainActivity : AppCompatActivity() {
         toolbar = supportActionBar!!
         val bottomNavigation: BottomNavigationView = findViewById(R.id.navigation)
         val db = DBUtils().initDb(this)
+        val retrofit = Retrofit.Builder()
+            .baseUrl("http://192.168.0.101:3000/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val apiClient = retrofit.create(ApiClient::class.java)
 
         bottomNavigation.setOnNavigationItemSelectedListener {
             when (it.itemId) {
@@ -44,83 +58,109 @@ class MainActivity : AppCompatActivity() {
 
         bottomNavigation.selectedItemId = R.id.navigation_plan
 
-        if (!DBUtils().isDatabaseExists(this)) {
-            db.disciplineDao().addAll(
-                listOf(
-                    Discipline(1, "Computer science"),
-                    Discipline(2, "Functional analysis"),
-                    Discipline(3, "MMOR")
-                )
-            )
-
-            db.groupCodeDao().addAll(
-                listOf(
-                    GroupCode(1, "KS-15"),
-                    GroupCode(2, "KM-15"),
-                    GroupCode(3, "KI-15")
-                )
-            )
-
-            db.educationFormDao().addAll(
-                listOf(
-                    EducationForm(1, "Day"),
-                    EducationForm(2, "Correspondence")
-                )
-            )
-
-            db.lessonTypeDao().addAll(
-                listOf(
-                    LessonType(1, "Lecture"),
-                    LessonType(2, "Practice"),
-                    LessonType(3, "Laboratory")
-                )
-            )
-
-            db.rateDao().addAll(
-                listOf(
-                    Rate(1, 0.24f),
-                    Rate(2, 1f)
-                )
-            )
-
-            db.lecturerDao().addAll(
-                listOf(
-                    Lecturer(1, "Onishchenko B.O.", "Docent"),
-                    Lecturer(2, "Yarynich Y.O.", "Docent")
-                )
-            )
-
-            db.workloadDao().addAll(
-                listOf(
-                    Workload(
-                        1,
-                        1,
-                        1,
-                        1,
-                        1,
-                        1,
-                        Calendar.getInstance().time,
-                        2,
-                        1,
-                        1,
-                        203
-                    ),
-                    Workload(
-                        2,
-                        1,
-                        1,
-                        1,
-                        1,
-                        1,
-                        Calendar.getInstance().time,
-                        2,
-                        2,
-                        1,
-                        203
+        apiClient.getDisciplines().enqueue(object : Callback<List<Discipline>> {
+            override fun onResponse(call: Call<List<Discipline>>, response: Response<List<Discipline>>) {
+                if (response.isSuccessful) {
+                    db.disciplineDao().addAll(
+                        response.body()!!
                     )
-                )
-            )
-        }
+                }
+            }
+
+            override fun onFailure(call: Call<List<Discipline>>, t: Throwable) {
+            }
+        })
+
+        apiClient.getGroupCodes().enqueue(object : Callback<List<GroupCode>> {
+            override fun onResponse(call: Call<List<GroupCode>>, response: Response<List<GroupCode>>) {
+                if (response.isSuccessful) {
+                    db.groupCodeDao().addAll(
+                        response.body()!!
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<GroupCode>>, t: Throwable) {
+            }
+        })
+
+        apiClient.getEducationForms().enqueue(object : Callback<List<EducationForm>> {
+            override fun onResponse(call: Call<List<EducationForm>>, response: Response<List<EducationForm>>) {
+                if (response.isSuccessful) {
+                    db.educationFormDao().addAll(
+                        response.body()!!
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<EducationForm>>, t: Throwable) {
+            }
+        })
+
+        apiClient.getLessonTypes().enqueue(object : Callback<List<LessonType>> {
+            override fun onResponse(call: Call<List<LessonType>>, response: Response<List<LessonType>>) {
+                if (response.isSuccessful) {
+                    db.lessonTypeDao().addAll(
+                        response.body()!!
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<LessonType>>, t: Throwable) {
+            }
+        })
+
+        apiClient.getLecturers().enqueue(object : Callback<List<Lecturer>> {
+            override fun onResponse(call: Call<List<Lecturer>>, response: Response<List<Lecturer>>) {
+                if (response.isSuccessful) {
+                    db.lecturerDao().addAll(
+                        response.body()!!
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<Lecturer>>, t: Throwable) {
+            }
+        })
+
+        apiClient.getRates().enqueue(object : Callback<List<Rate>> {
+            override fun onResponse(call: Call<List<Rate>>, response: Response<List<Rate>>) {
+                if (response.isSuccessful) {
+                    db.rateDao().addAll(
+                        response.body()!!
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<Rate>>, t: Throwable) {
+            }
+        })
+
+        apiClient.getWorkloads().enqueue(object : Callback<List<Workload>> {
+            override fun onResponse(call: Call<List<Workload>>, response: Response<List<Workload>>) {
+                if (response.isSuccessful) {
+                    db.workloadDao().addAll(
+                        response.body()!!
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<Workload>>, t: Throwable) {
+            }
+        })
+
+        apiClient.getPlans().enqueue(object : Callback<List<Plan>> {
+            override fun onResponse(call: Call<List<Plan>>, response: Response<List<Plan>>) {
+                if (response.isSuccessful) {
+                    db.planDao().addAll(
+                        response.body()!!
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<Plan>>, t: Throwable) {
+            }
+        })
     }
 
     private fun openFragment(fragment: Fragment) {

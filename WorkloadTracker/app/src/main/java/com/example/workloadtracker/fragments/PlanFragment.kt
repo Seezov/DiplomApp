@@ -19,13 +19,6 @@ import kotlinx.android.synthetic.main.fragment_plan.*
 
 class PlanFragment(private var db: AppDatabase) : Fragment() {
 
-    private val plans = mutableListOf(
-        Plan(1, 1, 1, 1, 1, 10),
-        Plan(2, 1, 2, 1, 1, 15),
-        Plan(3, 1, 3, 1, 1, 5),
-        Plan(4, 2, 1, 1, 1, 5)
-    )
-
     private var newPlans: MutableList<Plan> = emptyList<Plan>().toMutableList()
 
     private lateinit var adapter: PlanAdapter
@@ -39,7 +32,7 @@ class PlanFragment(private var db: AppDatabase) : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        newPlans.addAll(plans)
+        newPlans.addAll(db.planDao().getAll())
         adapter = PlanAdapter(db, newPlans)
         rvPlan.adapter = adapter
         rvPlan.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
@@ -64,7 +57,7 @@ class PlanFragment(private var db: AppDatabase) : Fragment() {
 
     private fun filterItems() {
         newPlans.clear()
-        newPlans.addAll(plans.filter {
+        newPlans.addAll(db.planDao().getAll().filter {
             (db.disciplineDao().getById(it.idDisc).name == spinnerDisc.selectedItem.toString() ||
             spinnerDisc.selectedItem.toString() == "Any") &&
             (db.lessonTypeDao().getById(it.idLT).name == spinnerLT.selectedItem.toString() ||
