@@ -16,7 +16,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
                 android:layout_marginTop="5dp"
-                android:text="Deduct a pair"
+                android:text="Додайте вичитану пару"
                 android:textSize="25sp"
                 android:textStyle="bold"/>
 
@@ -30,7 +30,7 @@
                     android:layout_width="wrap_content"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                     android:layout_height="wrap_content"
-                    android:text="@string/discipline"/>
+                    android:text="Дисципліна"/>
 
             <Spinner
                     android:id="@+id/spinnerDisc"
@@ -49,7 +49,7 @@
                     android:layout_width="wrap_content"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                     android:layout_height="wrap_content"
-                    android:text="@string/lesson_type"/>
+                    android:text="Тип заняття"/>
 
             <Spinner
                     android:id="@+id/spinnerLT"
@@ -68,7 +68,7 @@
                     android:layout_width="wrap_content"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                     android:layout_height="wrap_content"
-                    android:text="@string/group_code"/>
+                    android:text="Шифр групи"/>
 
             <Spinner
                     android:id="@+id/spinnerGC"
@@ -87,26 +87,7 @@
                     android:layout_width="wrap_content"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                     android:layout_height="wrap_content"
-                    android:text="@string/lecturer"/>
-
-            <Spinner
-                    android:id="@+id/spinnerLecturer"
-                    android:layout_marginStart="16dp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-        </LinearLayout>
-
-        <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="8dp">
-
-            <TextView
-                    android:layout_width="wrap_content"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:layout_height="wrap_content"
-                    android:text="Education form"/>
+                    android:text="Форма навчання"/>
 
             <Spinner
                     android:id="@+id/spinnerEF"
@@ -126,7 +107,7 @@
                     android:layout_width="wrap_content"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                     android:layout_height="wrap_content"
-                    android:text="Hours"/>
+                    android:text="Години"/>
 
             <EditText
                     android:id="@+id/fHours"
@@ -147,7 +128,7 @@
                     android:layout_width="wrap_content"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                     android:layout_height="wrap_content"
-                    android:text="Week"/>
+                    android:text="Тиждень"/>
 
             <EditText
                     android:id="@+id/fWeek"
@@ -161,7 +142,7 @@
                     android:layout_width="wrap_content"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                     android:layout_height="wrap_content"
-                    android:text="Index"/>
+                    android:text="Пара №"/>
 
             <EditText
                     android:id="@+id/fIndex"
@@ -175,7 +156,7 @@
                     android:layout_width="wrap_content"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                     android:layout_height="wrap_content"
-                    android:text="Hall"/>
+                    android:text="Ауд."/>
 
             <EditText
                     android:id="@+id/fHall"
@@ -205,7 +186,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:text="Add date"/>
+                    android:text="Змінити дату"/>
         </LinearLayout>
 
 
@@ -215,7 +196,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:background="@color/colorPrimaryDark"
-                android:text="Save"
+                android:text="Зберегти"
                 android:textColor="@android:color/white"/>
     </LinearLayout>
 

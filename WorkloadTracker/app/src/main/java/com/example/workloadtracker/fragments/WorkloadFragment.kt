@@ -12,8 +12,10 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.workloadtracker.R
+import com.example.workloadtracker.SPCache
 import com.example.workloadtracker.adapters.WorkloadAdapter
 import com.example.workloadtracker.database.AppDatabase
+import com.example.workloadtracker.enteties.Plan
 import com.example.workloadtracker.enteties.Workload
 import kotlinx.android.synthetic.main.dialog_add_workload.view.*
 import kotlinx.android.synthetic.main.fragment_workload.*
@@ -21,20 +23,38 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
-class WorkloadFragment(private var db: AppDatabase) : Fragment() {
+class WorkloadFragment(
+    private var db: AppDatabase,
+    private var spCache: SPCache
+) : Fragment() {
 
     private lateinit var adapter: WorkloadAdapter
+
+    private var workloads: MutableList<Workload> = emptyList<Workload>().toMutableList()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
         inflater.inflate(R.layout.fragment_workload, container, false)
 
     companion object {
-        fun newInstance(db: AppDatabase): WorkloadFragment = WorkloadFragment(db)
+        fun newInstance(db: AppDatabase, spCache: SPCache): WorkloadFragment = WorkloadFragment(db, spCache)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        filterItems()
+    }
+
+    private fun filterItems() {
+        workloads.clear()
+        workloads.addAll(db.workloadDao().getAll().filter {
+            db.lecturerDao().getById(it.idLecturer).name == spCache.currentLecturer.name
+        })
+        adapter.notifyDataSetChanged()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val workloads = db.workloadDao().getAll().toMutableList()
+        workloads = db.workloadDao().getAll().toMutableList()
         adapter = WorkloadAdapter(db, workloads)
         rvWorkload.adapter = adapter
         rvWorkload.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
@@ -50,7 +70,6 @@ class WorkloadFragment(private var db: AppDatabase) : Fragment() {
             inflateSpinner(mDialogView.spinnerDisc, db.disciplineDao().getAll().map { it.name }.toMutableList())
             inflateSpinner(mDialogView.spinnerLT, db.lessonTypeDao().getAll().map { it.name }.toMutableList())
             inflateSpinner(mDialogView.spinnerGC, db.groupCodeDao().getAll().map { it.name }.toMutableList())
-            inflateSpinner(mDialogView.spinnerLecturer, db.lecturerDao().getAll().map { it.name }.toMutableList())
             inflateSpinner(mDialogView.spinnerEF, db.educationFormDao().getAll().map { it.name }.toMutableList())
 
             val newCalendar = Calendar.getInstance()
@@ -85,9 +104,9 @@ class WorkloadFragment(private var db: AppDatabase) : Fragment() {
 
                     db.workloadDao().add(
                         Workload(
-                            db.workloadDao().getAll().size+1,
+                            db.workloadDao().getAll().size + 1,
                             db.groupCodeDao().getByName(mDialogView.spinnerGC.selectedItem.toString()).id,
-                            db.lecturerDao().getByName(mDialogView.spinnerLecturer.selectedItem.toString()).id,
+                            db.lecturerDao().getByName(spCache.currentLecturer.name).id,
                             db.lessonTypeDao().getByName(mDialogView.spinnerLT.selectedItem.toString()).id,
                             db.disciplineDao().getByName(mDialogView.spinnerDisc.selectedItem.toString()).id,
                             db.educationFormDao().getByName(mDialogView.spinnerEF.selectedItem.toString()).id,
@@ -98,9 +117,7 @@ class WorkloadFragment(private var db: AppDatabase) : Fragment() {
                             mDialogView.fHall.text.toString().toInt()
                         )
                     )
-                    workloads.clear()
-                    workloads.addAll(db.workloadDao().getAll())
-                    adapter.notifyDataSetChanged()
+                    filterItems()
                 }
             }
         }

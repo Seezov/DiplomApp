@@ -17,7 +17,7 @@ class PlanAdapter(private val db: AppDatabase, private val plans: MutableList<Pl
         holder.txtDiscipline.text = db.disciplineDao().getById(plans[position].idDisc).name
         holder.txtLessonType.text = db.lessonTypeDao().getById(plans[position].idLT).name
         holder.txtEducationFormAndRate.text =
-            "${db.educationFormDao().getById(plans[position].idEF).name} form/${db.rateDao().getById(plans[position].idRate).value} rate"
+            "${db.educationFormDao().getById(plans[position].idEF).name} форма навчання/${db.rateDao().getById(plans[position].idRate).value} ставка"
         holder.txtPlanHours.text = getPlanHoursText(position)
     }
 
@@ -30,7 +30,7 @@ class PlanAdapter(private val db: AppDatabase, private val plans: MutableList<Pl
 
         val planHours = plans[position].hours
 
-        return "$deductedHours/$planHours h"
+        return "$deductedHours/$planHours г."
     }
 
     private fun getDeductedHours(

@@ -10,7 +10,8 @@
             android:id="@+id/txtPlanTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="You can filter these items by:"
+            android:textAlignment="center"
+            android:text="Ви можете фільтрувати план за наступними параметрами:"
             android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -36,7 +37,7 @@
                     android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:text="@string/discipline"/>
+                    android:text="Дисципліна"/>
 
             <Spinner
                     android:id="@+id/spinnerDisc"
@@ -57,7 +58,7 @@
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:text="@string/lesson_type"/>
+                    android:text="Тип заняття"/>
 
             <Spinner
                     android:id="@+id/spinnerLT"

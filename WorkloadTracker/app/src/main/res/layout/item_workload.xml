@@ -42,7 +42,7 @@
             <TextView
                     android:id="@+id/txtGroupCode"
                     android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
-                    tools:text="@string/group_code"
+                    tools:text="Group Code"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:layout_constraintTop_toTopOf="parent"
@@ -50,7 +50,7 @@
             <TextView
                     android:id="@+id/txtLecturer"
                     android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
-                    tools:text="@string/lecturer"
+                    tools:text="Lecturer"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:layout_constraintTop_toBottomOf="@+id/txtGroupCode"

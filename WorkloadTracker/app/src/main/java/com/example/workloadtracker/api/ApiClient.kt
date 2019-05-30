@@ -1,12 +1,8 @@
 package com.example.workloadtracker.api
 
-import com.example.workloadtracker.api.responses.DisciplinesResponse
 import com.example.workloadtracker.enteties.*
 import retrofit2.Call
 import retrofit2.http.GET
-import retrofit2.http.Path
-import retrofit2.http.Query
-
 
 interface ApiClient {
 

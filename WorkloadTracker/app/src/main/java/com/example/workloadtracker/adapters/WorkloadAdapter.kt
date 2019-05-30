@@ -20,10 +20,10 @@ class WorkloadAdapter(private val db: AppDatabase, private val workloads: Mutabl
         holder.txtLessonType.text = db.lessonTypeDao().getById(workloads[position].idLT).name
 
         holder.txtWorkloadInfo.text = "${SimpleDateFormat("dd/MM/yyyy").format(workloads[position].date)}\n" +
-                "${workloads[position].week} week/" +
-                "${workloads[position].index} pair/" +
-                "${workloads[position].hall} hall/" +
-                "${db.educationFormDao().getById(workloads[position].idEF).name} form"
+                "${workloads[position].week} тиждень/" +
+                "${workloads[position].index} пара/" +
+                "${workloads[position].hall} аудиторія/" +
+                "${db.educationFormDao().getById(workloads[position].idEF).name} форма навчання"
 
         holder.txtGroupCode.text = db.groupCodeDao().getById(
             db.workloadDao().getById(workloads[position].id).idGC
@@ -31,7 +31,7 @@ class WorkloadAdapter(private val db: AppDatabase, private val workloads: Mutabl
         holder.txtLecturer.text = db.lecturerDao().getById(
             db.workloadDao().getById(workloads[position].id).idLecturer
         ).name
-        holder.txtWorkloadHours.text = "${db.workloadDao().getById(workloads[position].id).hours} hours"
+        holder.txtWorkloadHours.text = "${db.workloadDao().getById(workloads[position].id).hours} г."
     }
 
 

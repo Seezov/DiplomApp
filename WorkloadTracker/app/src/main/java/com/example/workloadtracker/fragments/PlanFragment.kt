@@ -11,15 +11,18 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.workloadtracker.R
+import com.example.workloadtracker.SPCache
 import com.example.workloadtracker.adapters.PlanAdapter
 import com.example.workloadtracker.database.AppDatabase
-import com.example.workloadtracker.database.DBUtils
 import com.example.workloadtracker.enteties.Plan
 import kotlinx.android.synthetic.main.fragment_plan.*
 
-class PlanFragment(private var db: AppDatabase) : Fragment() {
+class PlanFragment(
+    private var db: AppDatabase,
+    private var spCache: SPCache
+) : Fragment() {
 
-    private var newPlans: MutableList<Plan> = emptyList<Plan>().toMutableList()
+    private var plans: MutableList<Plan> = emptyList<Plan>().toMutableList()
 
     private lateinit var adapter: PlanAdapter
 
@@ -27,13 +30,18 @@ class PlanFragment(private var db: AppDatabase) : Fragment() {
         inflater.inflate(R.layout.fragment_plan, container, false)
 
     companion object {
-        fun newInstance(db: AppDatabase): PlanFragment = PlanFragment(db)
+        fun newInstance(db: AppDatabase, spCache: SPCache): PlanFragment = PlanFragment(db, spCache)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        filterItems()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        newPlans.addAll(db.planDao().getAll())
-        adapter = PlanAdapter(db, newPlans)
+        plans.addAll(db.planDao().getAll())
+        adapter = PlanAdapter(db, plans)
         rvPlan.adapter = adapter
         rvPlan.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
 
@@ -56,18 +64,19 @@ class PlanFragment(private var db: AppDatabase) : Fragment() {
     }
 
     private fun filterItems() {
-        newPlans.clear()
-        newPlans.addAll(db.planDao().getAll().filter {
+        plans.clear()
+        plans.addAll(db.planDao().getAll().filter {
             (db.disciplineDao().getById(it.idDisc).name == spinnerDisc.selectedItem.toString() ||
-            spinnerDisc.selectedItem.toString() == "Any") &&
+            spinnerDisc.selectedItem.toString() == "Всі") &&
             (db.lessonTypeDao().getById(it.idLT).name == spinnerLT.selectedItem.toString() ||
-            spinnerLT.selectedItem.toString() == "Any")
+            spinnerLT.selectedItem.toString() == "Всі")
+            db.lecturerDao().getById(db.rateDao().getById(it.idRate).idLecturer).name == spCache.currentLecturer.name
         })
         adapter.notifyDataSetChanged()
     }
 
     private fun inflateSpinner(spinner: Spinner, objects: MutableList<Any>) {
-        objects.add(0,"Any")
+        objects.add(0,"Всі")
         // Create an ArrayAdapter using a simple spinner layout and languages array
         val disciplineAdapter = ArrayAdapter(context!!, android.R.layout.simple_spinner_item, objects)
         // Set layout to use when the list of choices appear

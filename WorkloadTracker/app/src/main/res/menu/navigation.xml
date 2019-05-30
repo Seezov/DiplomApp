@@ -4,10 +4,10 @@
     <item
             android:id="@+id/navigation_plan"
             android:icon="@drawable/ic_plan"
-            android:title="@string/plan" />
+            android:title="План" />
 
     <item
             android:id="@+id/navigation_workload"
             android:icon="@drawable/ic_workload"
-            android:title="@string/workload" />
+            android:title="Навантаження" />
 </menu>

@@ -1,36 +1,80 @@
 package com.example.workloadtracker.activities
 
 import android.os.Bundle
-import androidx.annotation.NonNull
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import androidx.appcompat.app.ActionBar
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.workloadtracker.R
+import com.example.workloadtracker.SPCache
 import com.example.workloadtracker.api.ApiClient
-import com.example.workloadtracker.api.responses.DisciplinesResponse
+import com.example.workloadtracker.database.AppDatabase
 import com.example.workloadtracker.database.DBUtils
-import com.example.workloadtracker.enteties.*
 import com.example.workloadtracker.fragments.PlanFragment
 import com.example.workloadtracker.fragments.WorkloadFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.android.synthetic.main.dialog_login.view.*
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
     lateinit var toolbar: ActionBar
+
+    lateinit var db: AppDatabase
+
+    lateinit var spCache: SPCache
+
+    lateinit var lecturersAdapter: ArrayAdapter<String>
+
+    lateinit var bottomNavigation: BottomNavigationView
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val id = item.itemId
+
+        if (id == R.id.logout) {
+            showLoginDialog()
+            spCache
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun showLoginDialog() {
+        //Inflate the dialog with custom view
+        val mDialogView = LayoutInflater.from(this).inflate(R.layout.dialog_login, null)
+        //AlertDialogBuilder
+        val mBuilder = AlertDialog.Builder(this)
+            .setView(mDialogView)
+            .setCancelable(false)
+        //show dialog
+        val mAlertDialog = mBuilder.show()
+
+        inflateSpinner(mDialogView.spinnerLecturer, db.lecturerDao().getAll().map { it.name }.toMutableList())
+
+        mDialogView.btnLogin.setOnClickListener {
+            mAlertDialog.dismiss()
+            spCache.currentLecturer = db.lecturerDao().getByName(mDialogView.spinnerLecturer.selectedItem.toString())
+            bottomNavigation.selectedItemId = R.id.navigation_plan
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         toolbar = supportActionBar!!
-        val bottomNavigation: BottomNavigationView = findViewById(R.id.navigation)
-        val db = DBUtils().initDb(this)
+        spCache = SPCache()
+        db = DBUtils().initDb(this)
         val retrofit = Retrofit.Builder()
             .baseUrl("http://192.168.0.101:3000/")
             .addConverterFactory(GsonConverterFactory.create())
@@ -38,17 +82,18 @@ class MainActivity : AppCompatActivity() {
 
         val apiClient = retrofit.create(ApiClient::class.java)
 
+        bottomNavigation = findViewById(R.id.navigation)
         bottomNavigation.setOnNavigationItemSelectedListener {
             when (it.itemId) {
                 R.id.navigation_plan -> {
-                    toolbar.title = getString(R.string.plan)
-                    val planFragment = PlanFragment.newInstance(db)
+                    toolbar.title = "План"
+                    val planFragment = PlanFragment.newInstance(db, spCache)
                     openFragment(planFragment)
                     return@setOnNavigationItemSelectedListener true
                 }
                 R.id.navigation_workload -> {
-                    toolbar.title = getString(R.string.workload)
-                    val workloadFragment = WorkloadFragment.newInstance(db)
+                    toolbar.title = "Навантаження"
+                    val workloadFragment = WorkloadFragment.newInstance(db, spCache)
                     openFragment(workloadFragment)
                     return@setOnNavigationItemSelectedListener true
                 }
@@ -56,111 +101,72 @@ class MainActivity : AppCompatActivity() {
             false
         }
 
-        bottomNavigation.selectedItemId = R.id.navigation_plan
+        Thread(Runnable {
+            // Do network action in this function
 
-        apiClient.getDisciplines().enqueue(object : Callback<List<Discipline>> {
-            override fun onResponse(call: Call<List<Discipline>>, response: Response<List<Discipline>>) {
-                if (response.isSuccessful) {
-                    db.disciplineDao().addAll(
-                        response.body()!!
-                    )
+
+            val responseDisciplines = apiClient.getDisciplines().execute()
+            if (responseDisciplines.isSuccessful) {
+                db.disciplineDao().addAll(
+                    responseDisciplines.body()!!
+                )
+            }
+
+            val responseGroupCodes = apiClient.getGroupCodes().execute()
+            if (responseGroupCodes.isSuccessful) {
+                db.groupCodeDao().addAll(
+                    responseGroupCodes.body()!!
+                )
+            }
+
+            val responseEducationForms = apiClient.getEducationForms().execute()
+            if (responseEducationForms.isSuccessful) {
+                db.educationFormDao().addAll(
+                    responseEducationForms.body()!!
+                )
+            }
+
+            val responseLessonTypes = apiClient.getLessonTypes().execute()
+            if (responseLessonTypes.isSuccessful) {
+                db.lessonTypeDao().addAll(
+                    responseLessonTypes.body()!!
+                )
+            }
+
+            val responseLecturers = apiClient.getLecturers().execute()
+            if (responseLecturers.isSuccessful) {
+                db.lecturerDao().addAll(
+                    responseLecturers.body()!!
+                )
+                runOnUiThread {
+                    lecturersAdapter.clear()
+                    lecturersAdapter.addAll(db.lecturerDao().getAll().map { it.name })
+                    lecturersAdapter.notifyDataSetChanged()
                 }
             }
 
-            override fun onFailure(call: Call<List<Discipline>>, t: Throwable) {
-            }
-        })
-
-        apiClient.getGroupCodes().enqueue(object : Callback<List<GroupCode>> {
-            override fun onResponse(call: Call<List<GroupCode>>, response: Response<List<GroupCode>>) {
-                if (response.isSuccessful) {
-                    db.groupCodeDao().addAll(
-                        response.body()!!
-                    )
-                }
+            val responseRates = apiClient.getRates().execute()
+            if (responseRates.isSuccessful) {
+                db.rateDao().addAll(
+                    responseRates.body()!!
+                )
             }
 
-            override fun onFailure(call: Call<List<GroupCode>>, t: Throwable) {
-            }
-        })
-
-        apiClient.getEducationForms().enqueue(object : Callback<List<EducationForm>> {
-            override fun onResponse(call: Call<List<EducationForm>>, response: Response<List<EducationForm>>) {
-                if (response.isSuccessful) {
-                    db.educationFormDao().addAll(
-                        response.body()!!
-                    )
-                }
+            val responseWorkloads = apiClient.getWorkloads().execute()
+            if (responseWorkloads.isSuccessful) {
+                db.workloadDao().addAll(
+                    responseWorkloads.body()!!
+                )
             }
 
-            override fun onFailure(call: Call<List<EducationForm>>, t: Throwable) {
+            val responsePlans = apiClient.getPlans().execute()
+            if (responsePlans.isSuccessful) {
+                db.planDao().addAll(
+                    responsePlans.body()!!
+                )
             }
-        })
-
-        apiClient.getLessonTypes().enqueue(object : Callback<List<LessonType>> {
-            override fun onResponse(call: Call<List<LessonType>>, response: Response<List<LessonType>>) {
-                if (response.isSuccessful) {
-                    db.lessonTypeDao().addAll(
-                        response.body()!!
-                    )
-                }
-            }
-
-            override fun onFailure(call: Call<List<LessonType>>, t: Throwable) {
-            }
-        })
-
-        apiClient.getLecturers().enqueue(object : Callback<List<Lecturer>> {
-            override fun onResponse(call: Call<List<Lecturer>>, response: Response<List<Lecturer>>) {
-                if (response.isSuccessful) {
-                    db.lecturerDao().addAll(
-                        response.body()!!
-                    )
-                }
-            }
-
-            override fun onFailure(call: Call<List<Lecturer>>, t: Throwable) {
-            }
-        })
-
-        apiClient.getRates().enqueue(object : Callback<List<Rate>> {
-            override fun onResponse(call: Call<List<Rate>>, response: Response<List<Rate>>) {
-                if (response.isSuccessful) {
-                    db.rateDao().addAll(
-                        response.body()!!
-                    )
-                }
-            }
-
-            override fun onFailure(call: Call<List<Rate>>, t: Throwable) {
-            }
-        })
-
-        apiClient.getWorkloads().enqueue(object : Callback<List<Workload>> {
-            override fun onResponse(call: Call<List<Workload>>, response: Response<List<Workload>>) {
-                if (response.isSuccessful) {
-                    db.workloadDao().addAll(
-                        response.body()!!
-                    )
-                }
-            }
-
-            override fun onFailure(call: Call<List<Workload>>, t: Throwable) {
-            }
-        })
-
-        apiClient.getPlans().enqueue(object : Callback<List<Plan>> {
-            override fun onResponse(call: Call<List<Plan>>, response: Response<List<Plan>>) {
-                if (response.isSuccessful) {
-                    db.planDao().addAll(
-                        response.body()!!
-                    )
-                }
-            }
-
-            override fun onFailure(call: Call<List<Plan>>, t: Throwable) {
-            }
-        })
+        }).start()
+        showLoginDialog()
     }
 
     private fun openFragment(fragment: Fragment) {
@@ -168,5 +174,14 @@ class MainActivity : AppCompatActivity() {
         transaction.replace(R.id.fragmentContainer, fragment)
         transaction.addToBackStack(null)
         transaction.commit()
+    }
+
+    private fun inflateSpinner(spinner: Spinner, objects: MutableList<String>) {
+        // Create an ArrayAdapter using a simple spinner layout and languages array
+        lecturersAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, objects)
+        // Set layout to use when the list of choices appear
+        lecturersAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        // Set Adapter to Spinner
+        spinner.adapter = lecturersAdapter
     }
 }
