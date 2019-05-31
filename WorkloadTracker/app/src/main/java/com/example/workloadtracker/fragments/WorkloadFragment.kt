@@ -3,10 +3,12 @@ package com.example.workloadtracker.fragments
 import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Spinner
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,29 +16,162 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.workloadtracker.R
 import com.example.workloadtracker.SPCache
 import com.example.workloadtracker.adapters.WorkloadAdapter
+import com.example.workloadtracker.api.ApiClient
 import com.example.workloadtracker.database.AppDatabase
-import com.example.workloadtracker.enteties.Plan
 import com.example.workloadtracker.enteties.Workload
+import com.example.workloadtracker.moshi.FallbackOnNullAdapterFactory
+import com.example.workloadtracker.moshi.toJson
+import com.kidslox.app.moshi.DateJsonAdapter
+import com.squareup.moshi.Moshi
 import kotlinx.android.synthetic.main.dialog_add_workload.view.*
 import kotlinx.android.synthetic.main.fragment_workload.*
+import okhttp3.MediaType
+import okhttp3.RequestBody
+import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
 
 
 class WorkloadFragment(
+    private var apiClient: ApiClient,
     private var db: AppDatabase,
     private var spCache: SPCache
-) : Fragment() {
+) : Fragment(), WorkloadAdapter.OnWorkloadListener {
 
     private lateinit var adapter: WorkloadAdapter
 
     private var workloads: MutableList<Workload> = emptyList<Workload>().toMutableList()
 
+    val moshi = Moshi.Builder()
+        .add(DateJsonAdapter())
+        .add(FallbackOnNullAdapterFactory())
+        .build()
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
         inflater.inflate(R.layout.fragment_workload, container, false)
 
     companion object {
-        fun newInstance(db: AppDatabase, spCache: SPCache): WorkloadFragment = WorkloadFragment(db, spCache)
+        fun newInstance(apiClient: ApiClient, db: AppDatabase, spCache: SPCache): WorkloadFragment =
+            WorkloadFragment(apiClient, db, spCache)
+    }
+
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        val currentWorkload = workloads[item.groupId]
+        when (item.itemId) {
+            121 -> {
+                //Inflate the dialog with custom view
+                val mDialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_workload, null)
+                //AlertDialogBuilder
+                val mBuilder = AlertDialog.Builder(context!!)
+                    .setView(mDialogView)
+                //show dialog
+                val mAlertDialog = mBuilder.show()
+
+                inflateSpinner(mDialogView.spinnerDisc, db.disciplineDao().getAll().map { it.name }.toMutableList())
+                inflateSpinner(mDialogView.spinnerLT, db.lessonTypeDao().getAll().map { it.name }.toMutableList())
+                inflateSpinner(mDialogView.spinnerGC, db.groupCodeDao().getAll().map { it.name }.toMutableList())
+                inflateSpinner(mDialogView.spinnerEF, db.educationFormDao().getAll().map { it.name }.toMutableList())
+
+                mDialogView.spinnerDisc.setSelection(currentWorkload.idDisc - 1)
+                mDialogView.spinnerLT.setSelection(currentWorkload.idLT - 1)
+                mDialogView.spinnerGC.setSelection(currentWorkload.idGC - 1)
+                mDialogView.spinnerEF.setSelection(currentWorkload.idEF - 1)
+
+                mDialogView.txtDate.text = SimpleDateFormat("dd/MM/yyyy").format(currentWorkload.date)
+
+                val startTime = DatePickerDialog(
+                    context!!,
+                    R.style.Base_Theme_AppCompat_Light_Dialog,
+                    { _, year, monthOfYear, dayOfMonth ->
+                        val newDate = Calendar.getInstance()
+                        newDate.set(year, monthOfYear, dayOfMonth)
+                        mDialogView.txtDate.text = SimpleDateFormat("dd/MM/yyyy").format(newDate.time)
+                    },
+                    currentWorkload.date.year,
+                    currentWorkload.date.month,
+                    currentWorkload.date.day
+                )
+
+                mDialogView.fHours.setText(currentWorkload.hours.toString(), TextView.BufferType.EDITABLE)
+                mDialogView.fWeek.setText(currentWorkload.week.toString(), TextView.BufferType.EDITABLE)
+                mDialogView.fIndex.setText(currentWorkload.pairIndex.toString(), TextView.BufferType.EDITABLE)
+                mDialogView.fHall.setText(currentWorkload.hall.toString(), TextView.BufferType.EDITABLE)
+
+                mDialogView.btnDate.setOnClickListener { startTime.show() }
+
+                //login button click of custom layout
+                mDialogView.btnSaveWorkload.setOnClickListener {
+
+                    //dismiss dialog
+                    if (
+                        mDialogView.fHours.text.toString().isNotEmpty() &&
+                        mDialogView.fWeek.text.toString().isNotEmpty() &&
+                        mDialogView.fIndex.text.toString().isNotEmpty() &&
+                        mDialogView.fHall.text.toString().isNotEmpty()
+                    ) {
+                        mAlertDialog.dismiss()
+
+                        val newWorkload = Workload(
+                            currentWorkload.id,
+                            db.groupCodeDao().getByName(mDialogView.spinnerGC.selectedItem.toString()).id,
+                            db.lecturerDao().getByName(spCache.currentLecturer.name).id,
+                            db.lessonTypeDao().getByName(mDialogView.spinnerLT.selectedItem.toString()).id,
+                            db.disciplineDao().getByName(mDialogView.spinnerDisc.selectedItem.toString()).id,
+                            db.educationFormDao().getByName(mDialogView.spinnerEF.selectedItem.toString()).id,
+                            SimpleDateFormat("dd/MM/yyyy").parse(mDialogView.txtDate.text.toString()),
+                            mDialogView.fHours.text.toString().toInt(),
+                            mDialogView.fWeek.text.toString().toInt(),
+                            mDialogView.fIndex.text.toString().toInt(),
+                            mDialogView.fHall.text.toString().toInt()
+                        )
+
+                        db.workloadDao().add(newWorkload)
+
+
+                        Thread(Runnable {
+                            try {
+                                apiClient.updateWorkload(
+                                    newWorkload.id,
+                                    jsonStringToRequestBody(
+                                        moshi.toJson(
+                                            mapOf(
+                                                "id" to newWorkload.id,
+                                                "idGC" to newWorkload.idGC,
+                                                "idLecturer" to newWorkload.idLecturer,
+                                                "idLT" to newWorkload.idLT,
+                                                "idDisc" to newWorkload.idDisc,
+                                                "idEF" to newWorkload.idEF,
+                                                "date" to newWorkload.date,
+                                                "hours" to newWorkload.hours,
+                                                "week" to newWorkload.week,
+                                                "pairIndex" to newWorkload.pairIndex,
+                                                "hall" to newWorkload.hall
+                                            )
+                                        )
+                                    )
+                                ).execute()
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+
+                        }).start()
+
+                        filterItems()
+                    }
+                }
+
+            }
+            122 -> {
+                db.workloadDao().deleteById(currentWorkload.id)
+                Thread(Runnable {
+                    apiClient.deleteWorkload(currentWorkload.id).execute()
+                }).start()
+                workloads.removeAt(item.groupId)
+                adapter.notifyDataSetChanged()
+            }
+        }
+
+        return super.onContextItemSelected(item)
     }
 
     override fun onResume() {
@@ -50,6 +185,12 @@ class WorkloadFragment(
             db.lecturerDao().getById(it.idLecturer).name == spCache.currentLecturer.name
         })
         adapter.notifyDataSetChanged()
+    }
+
+    private fun jsonStringToRequestBody(json: String): RequestBody =
+        RequestBody.create(MediaType.parse("application/json"), json.toByteArray())
+
+    override fun onWorkloadLongClicked(position: Int) {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -102,21 +243,49 @@ class WorkloadFragment(
                 ) {
                     mAlertDialog.dismiss()
 
-                    db.workloadDao().add(
-                        Workload(
-                            db.workloadDao().getAll().size + 1,
-                            db.groupCodeDao().getByName(mDialogView.spinnerGC.selectedItem.toString()).id,
-                            db.lecturerDao().getByName(spCache.currentLecturer.name).id,
-                            db.lessonTypeDao().getByName(mDialogView.spinnerLT.selectedItem.toString()).id,
-                            db.disciplineDao().getByName(mDialogView.spinnerDisc.selectedItem.toString()).id,
-                            db.educationFormDao().getByName(mDialogView.spinnerEF.selectedItem.toString()).id,
-                            SimpleDateFormat("dd/MM/yyyy").parse(mDialogView.txtDate.text.toString()),
-                            mDialogView.fHours.text.toString().toInt(),
-                            mDialogView.fWeek.text.toString().toInt(),
-                            mDialogView.fIndex.text.toString().toInt(),
-                            mDialogView.fHall.text.toString().toInt()
-                        )
+                    val newWorkload = Workload(
+                        db.workloadDao().getAll().last().id + 1,
+                        db.groupCodeDao().getByName(mDialogView.spinnerGC.selectedItem.toString()).id,
+                        db.lecturerDao().getByName(spCache.currentLecturer.name).id,
+                        db.lessonTypeDao().getByName(mDialogView.spinnerLT.selectedItem.toString()).id,
+                        db.disciplineDao().getByName(mDialogView.spinnerDisc.selectedItem.toString()).id,
+                        db.educationFormDao().getByName(mDialogView.spinnerEF.selectedItem.toString()).id,
+                        SimpleDateFormat("dd/MM/yyyy").parse(mDialogView.txtDate.text.toString()),
+                        mDialogView.fHours.text.toString().toInt(),
+                        mDialogView.fWeek.text.toString().toInt(),
+                        mDialogView.fIndex.text.toString().toInt(),
+                        mDialogView.fHall.text.toString().toInt()
                     )
+
+                    db.workloadDao().add(newWorkload)
+
+                    Thread(Runnable {
+                        try {
+                            apiClient.postWorkload(
+                                jsonStringToRequestBody(
+                                    moshi.toJson(
+                                        mapOf(
+                                            "id" to newWorkload.id,
+                                            "idGC" to newWorkload.idGC,
+                                            "idLecturer" to newWorkload.idLecturer,
+                                            "idLT" to newWorkload.idLT,
+                                            "idDisc" to newWorkload.idDisc,
+                                            "idEF" to newWorkload.idEF,
+                                            "date" to newWorkload.date,
+                                            "hours" to newWorkload.hours,
+                                            "week" to newWorkload.week,
+                                            "pairIndex" to newWorkload.pairIndex,
+                                            "hall" to newWorkload.hall
+                                        )
+                                    )
+                                )
+                            ).execute()
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+
+                    }).start()
+
                     filterItems()
                 }
             }

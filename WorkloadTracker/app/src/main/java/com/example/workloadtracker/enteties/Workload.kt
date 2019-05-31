@@ -47,6 +47,6 @@ data class Workload (
     val date: Date,
     val hours: Int,
     val week: Int,
-    val index: Int,
+    val pairIndex: Int,
     val hall: Int
 )

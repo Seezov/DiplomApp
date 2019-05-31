@@ -1,8 +1,9 @@
 package com.example.workloadtracker.api
 
 import com.example.workloadtracker.enteties.*
+import okhttp3.RequestBody
 import retrofit2.Call
-import retrofit2.http.GET
+import retrofit2.http.*
 
 interface ApiClient {
 
@@ -26,6 +27,17 @@ interface ApiClient {
 
     @GET("workloads")
     fun getWorkloads(): Call<List<Workload>>
+
+    @POST("workloads")
+    fun postWorkload(@Body body: RequestBody): Call<Void>
+
+    @POST("workloads/{id}")
+    fun updateWorkload(@Path("id") id: Int, @Body body: RequestBody): Call<Void>
+
+    @DELETE("workloads/{id}")
+    fun deleteWorkload(
+        @Path("id") id: Int
+    ): Call<Void>
 
     @GET("plans")
     fun getPlans(): Call<List<Plan>>

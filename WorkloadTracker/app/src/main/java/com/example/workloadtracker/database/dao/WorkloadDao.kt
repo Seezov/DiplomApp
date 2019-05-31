@@ -9,7 +9,7 @@ interface WorkloadDao {
     @Query("SELECT * FROM Workload")
     fun getAll(): List<Workload>
 
-    @Query("SELECT * FROM Workload " + "WHERE id = :id")
+    @Query("SELECT * FROM Workload WHERE id = :id")
     fun getById(id: Int): Workload
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -20,4 +20,7 @@ interface WorkloadDao {
 
     @Query("DELETE FROM Workload")
     fun deleteAll()
+
+    @Query("DELETE FROM Workload WHERE id = :id")
+    fun deleteById(id: Int)
 }

@@ -93,7 +93,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.navigation_workload -> {
                     toolbar.title = "Навантаження"
-                    val workloadFragment = WorkloadFragment.newInstance(db, spCache)
+                    val workloadFragment = WorkloadFragment.newInstance(apiClient, db, spCache)
                     openFragment(workloadFragment)
                     return@setOnNavigationItemSelectedListener true
                 }
