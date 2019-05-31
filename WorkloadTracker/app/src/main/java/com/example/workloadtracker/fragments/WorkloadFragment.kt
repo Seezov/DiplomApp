@@ -30,6 +30,13 @@ import okhttp3.RequestBody
 import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.os.Environment
+import com.example.workloadtracker.PDFHelper
+import java.io.File
 
 
 class WorkloadFragment(
@@ -200,6 +207,13 @@ class WorkloadFragment(
         rvWorkload.adapter = adapter
         rvWorkload.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
 
+
+        val file = File(Environment.getExternalStorageDirectory(), "pdf")
+
+        btnPdfReport.setOnClickListener {
+            PDFHelper(file, context).saveImageToPDF(rvWorkload, getRecyclerViewScreenshot(rvWorkload), "testpdf")
+        }
+
         btnAddWorkload.setOnClickListener {
             //Inflate the dialog with custom view
             val mDialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_workload, null)
@@ -299,5 +313,40 @@ class WorkloadFragment(
         disciplineAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         // Set Adapter to Spinner
         spinner.adapter = disciplineAdapter
+    }
+
+    fun getRecyclerViewScreenshot(view: RecyclerView): Bitmap {
+        val size = view.adapter!!.itemCount
+        val holder = view.adapter!!.createViewHolder(view, 0)
+        view.adapter!!.onBindViewHolder(holder, 0)
+        holder.itemView.measure(
+            View.MeasureSpec.makeMeasureSpec(view.width, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        )
+        holder.itemView.layout(0, 0, holder.itemView.measuredWidth, holder.itemView.measuredHeight)
+        val bigBitmap = Bitmap.createBitmap(
+            view.measuredWidth, holder.itemView.measuredHeight * size,
+            Bitmap.Config.ARGB_8888
+        )
+        val bigCanvas = Canvas(bigBitmap)
+        bigCanvas.drawColor(Color.WHITE)
+        val paint = Paint()
+        var iHeight = 0f
+        holder.itemView.isDrawingCacheEnabled = true
+        holder.itemView.buildDrawingCache()
+        bigCanvas.drawBitmap(holder.itemView.drawingCache, 0f, iHeight, paint)
+        holder.itemView.isDrawingCacheEnabled = false
+        holder.itemView.destroyDrawingCache()
+        iHeight += holder.itemView.measuredHeight
+        for (i in 1 until size) {
+            view.adapter!!.onBindViewHolder(holder, i)
+            holder.itemView.isDrawingCacheEnabled = true
+            holder.itemView.buildDrawingCache()
+            bigCanvas.drawBitmap(holder.itemView.drawingCache, 0f, iHeight, paint)
+            iHeight += holder.itemView.measuredHeight
+            holder.itemView.isDrawingCacheEnabled = false
+            holder.itemView.destroyDrawingCache()
+        }
+        return bigBitmap
     }
 }
