@@ -35,6 +35,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.os.Environment
+import android.widget.Toast
 import com.example.workloadtracker.PDFHelper
 import java.io.File
 
@@ -212,6 +213,7 @@ class WorkloadFragment(
 
         btnPdfReport.setOnClickListener {
             PDFHelper(file, context).saveImageToPDF(rvWorkload, getRecyclerViewScreenshot(rvWorkload), "testpdf")
+            Toast.makeText(context, "PDF файл створений в " + file.absolutePath, Toast.LENGTH_SHORT).show()
         }
 
         btnAddWorkload.setOnClickListener {

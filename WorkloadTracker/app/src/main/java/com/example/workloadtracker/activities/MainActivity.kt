@@ -23,6 +23,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.android.synthetic.main.dialog_login.view.*
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.lang.Exception
 
 class MainActivity : AppCompatActivity() {
 
@@ -107,68 +108,74 @@ class MainActivity : AppCompatActivity() {
         Thread(Runnable {
             // Do network action in this function
 
+            try {
 
-            val responseDisciplines = apiClient.getDisciplines().execute()
-            if (responseDisciplines.isSuccessful) {
-                db.disciplineDao().addAll(
-                    responseDisciplines.body()!!
-                )
-            }
 
-            val responseGroupCodes = apiClient.getGroupCodes().execute()
-            if (responseGroupCodes.isSuccessful) {
-                db.groupCodeDao().addAll(
-                    responseGroupCodes.body()!!
-                )
-            }
-
-            val responseEducationForms = apiClient.getEducationForms().execute()
-            if (responseEducationForms.isSuccessful) {
-                db.educationFormDao().addAll(
-                    responseEducationForms.body()!!
-                )
-            }
-
-            val responseLessonTypes = apiClient.getLessonTypes().execute()
-            if (responseLessonTypes.isSuccessful) {
-                db.lessonTypeDao().addAll(
-                    responseLessonTypes.body()!!
-                )
-            }
-
-            val responseLecturers = apiClient.getLecturers().execute()
-            if (responseLecturers.isSuccessful) {
-                db.lecturerDao().addAll(
-                    responseLecturers.body()!!
-                )
-                runOnUiThread {
-                    lecturersAdapter.clear()
-                    lecturersAdapter.addAll(db.lecturerDao().getAll().map { it.name })
-                    lecturersAdapter.notifyDataSetChanged()
+                val responseDisciplines = apiClient.getDisciplines().execute()
+                if (responseDisciplines.isSuccessful) {
+                    db.disciplineDao().addAll(
+                        responseDisciplines.body()!!
+                    )
                 }
-            }
 
-            val responseRates = apiClient.getRates().execute()
-            if (responseRates.isSuccessful) {
-                db.rateDao().addAll(
-                    responseRates.body()!!
-                )
-            }
+                val responseGroupCodes = apiClient.getGroupCodes().execute()
+                if (responseGroupCodes.isSuccessful) {
+                    db.groupCodeDao().addAll(
+                        responseGroupCodes.body()!!
+                    )
+                }
 
-            val responseWorkloads = apiClient.getWorkloads().execute()
-            if (responseWorkloads.isSuccessful) {
-                db.workloadDao().addAll(
-                    responseWorkloads.body()!!
-                )
-            }
+                val responseEducationForms = apiClient.getEducationForms().execute()
+                if (responseEducationForms.isSuccessful) {
+                    db.educationFormDao().addAll(
+                        responseEducationForms.body()!!
+                    )
+                }
 
-            val responsePlans = apiClient.getPlans().execute()
-            if (responsePlans.isSuccessful) {
-                db.planDao().addAll(
-                    responsePlans.body()!!
-                )
+                val responseLessonTypes = apiClient.getLessonTypes().execute()
+                if (responseLessonTypes.isSuccessful) {
+                    db.lessonTypeDao().addAll(
+                        responseLessonTypes.body()!!
+                    )
+                }
+
+                val responseLecturers = apiClient.getLecturers().execute()
+                if (responseLecturers.isSuccessful) {
+                    db.lecturerDao().addAll(
+                        responseLecturers.body()!!
+                    )
+                    runOnUiThread {
+                        lecturersAdapter.clear()
+                        lecturersAdapter.addAll(db.lecturerDao().getAll().map { it.name })
+                        lecturersAdapter.notifyDataSetChanged()
+                    }
+                }
+
+                val responseRates = apiClient.getRates().execute()
+                if (responseRates.isSuccessful) {
+                    db.rateDao().addAll(
+                        responseRates.body()!!
+                    )
+                }
+
+                val responseWorkloads = apiClient.getWorkloads().execute()
+                if (responseWorkloads.isSuccessful) {
+                    db.workloadDao().addAll(
+                        responseWorkloads.body()!!
+                    )
+                }
+
+                val responsePlans = apiClient.getPlans().execute()
+                if (responsePlans.isSuccessful) {
+                    db.planDao().addAll(
+                        responsePlans.body()!!
+                    )
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }).start()
+
         showLoginDialog()
     }
 
